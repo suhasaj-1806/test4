@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kavach | Smart Medical Bill Audit</title>
+
+    <!-- 
+    COLOR PALETTE CHEAT SHEET (To change, swap the hex codes in the <style> below)
+    1. Wellness Teal (Current): #0d9488 (Teal 600) -> #2dd4bf (Teal 400)
+    2. Trust Blue: #2563eb (Blue 600) -> #60a5fa (Blue 400)
+    3. Emergency Red: #dc2626 (Red 600) -> #f87171 (Red 400)
+    4. Royal Purple: #7c3aed (Violet 600) -> #a78bfa (Violet 400)
+    -->
+
+    <script src="https://tailwindcss.com"></script>
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://cloudflare.com"></script>
+    <script src="https://cloudflare.com"></script>
+    <script src="https://jsdelivr.net"></script>
+    <link href="https://cloudflare.com" rel="stylesheet">
+    
+    <script>
+        // Customizes Tailwind to use the "Wellness Teal" theme globally
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdfa', 100: '#ccfbf1', 400: '#2dd4bf', 
+                            500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 900: '#134e4a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .glass { background: rgba(255, 255, 255, 0.90); backdrop-filter: blur(12px); }
+        /* Using Wellness Teal Gradient */
+        .gradient-bg { background: linear-gradient(135deg, #0d9488 0%, #2dd4bf 100%); }
+        .card-shadow { box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05); }
+        #signature-pad { border: 2px dashed #ccfbf1; background: #f0fdfa; cursor: crosshair; }
+        .hidden-section { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-900">
+
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="fixed inset-0 z-50 gradient-bg flex items-center justify-center p-4 transition-opacity duration-500">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-10 space-y-8">
+            <div class="text-center">
+                <div class="bg-brand-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-shield-halved text-4xl text-brand-600"></i>
+                </div>
+                <h2 class="text-4xl font-black text-slate-900 tracking-tight italic">KAVACH</h2>
+                <p class="text-slate-500 font-medium mt-2">Hospital Bill Protection Engine</p>
+            </div>
+            <form id="authForm" class="space-y-5">
+                <input type="email" id="loginEmail" required placeholder="User Email" class="w-full px-6 py-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-brand-100 transition">
+                <input type="password" id="loginPass" required placeholder="Password" class="w-full px-6 py-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-brand-100 transition">
+                <button type="submit" class="w-full gradient-bg text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:brightness-110 active:scale-95 transition">Secure Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="mainDashboard" class="hidden-section pb-20">
+        <nav class="sticky top-0 z-40 glass border-b border-brand-100 p-5">
+            <div class="max-w-6xl mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-shield-halved text-2xl text-brand-600"></i>
+                    <span class="font-black text-2xl tracking-tighter">KAVACH</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <select id="appLang" class="bg-brand-50 text-brand-700 text-sm font-bold rounded-xl px-4 py-2 border-none outline-none">
+                        <option value="eng">English</option><option value="hin">Hindi</option><option value="mar">Marathi</option>
+                        <option value="tam">Tamil</option><option value="tel">Telugu</option><option value="ben">Bengali</option>
+                    </select>
+                    <button onclick="location.reload()" class="bg-rose-50 text-rose-600 w-10 h-10 rounded-xl flex items-center justify-center hover:bg-rose-100 transition"><i class="fas fa-power-off"></i></button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-6xl mx-auto px-6 pt-10 space-y-10">
+            <!-- Recent History -->
+            <section class="space-y-4">
+                <h3 class="font-black text-xs uppercase tracking-widest text-slate-400 flex items-center gap-2 px-1">Recent Activity</h3>
+                <div id="historyList" class="flex gap-4 overflow-x-auto pb-4 scroll-smooth">
+                    <p class="text-slate-300 italic text-sm">No recent scans.</p>
+                </div>
+            </section>
+
+            <!-- Scanner Box -->
+            <section class="bg-white rounded-[3rem] card-shadow p-10 md:p-16 text-center space-y-8 border-2 border-brand-50">
+                <div class="max-w-xl mx-auto space-y-6">
+                    <h2 class="text-4xl font-black text-slate-900">Upload & Audit</h2>
+                    <p class="text-slate-500 font-medium">Capture or upload your hospital bill for a smart regulatory check.</p>
+                    
+                    <div class="relative group">
+                        <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.pdf" class="hidden">
+                        <label for="fileInput" class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-brand-100 rounded-3xl cursor-pointer hover:bg-brand-50 transition bg-slate-50">
+                            <i class="fas fa-file-invoice text-3xl text-brand-400 mb-2"></i>
+                            <span id="fileNameDisplay" class="text-slate-500 font-bold text-sm">Click to select file (JPG, PDF)</span>
+                        </label>
+                    </div>
+
+                    <button onclick="processBill()" class="w-full gradient-bg text-white py-5 rounded-3xl font-black text-xl shadow-2xl hover:brightness-110 active:scale-95 transition">START AI SCAN</button>
+                    
+                    <div id="statusContainer" class="hidden">
+                        <div class="w-full bg-slate-100 rounded-full h-2 mt-6 overflow-hidden">
+                            <div id="progress-bar" class="bg-brand-500 h-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results -->
+            <div id="outputArea" class="hidden-section grid lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-white p-8 rounded-[2.5rem] card-shadow space-y-6">
+                    <h3 class="text-xl font-black text-slate-800">Audit Itemization</h3>
+                    <div id="auditResults" class="space-y-3 max-h-[400px] overflow-y-auto pr-2"></div>
+                </div>
+
+                <div class="bg-slate-900 text-white p-8 rounded-[2.5rem] card-shadow flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-black mb-4 flex items-center gap-2 text-brand-400"><i class="fas fa-chart-pie"></i> Audit Logic</h3>
+                        <div id="reportSummary" class="text-slate-300 text-sm leading-relaxed"></div>
+                    </div>
+                    <div class="space-y-3 mt-8">
+                        <button onclick="downloadAuditPDF()" class="w-full bg-white text-slate-900 py-4 rounded-2xl font-black text-sm hover:bg-slate-100 transition">Download PDF Report</button>
+                        <button onclick="shareOnWhatsApp()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-emerald-700 transition">
+                            <i class="fab fa-whatsapp"></i> Share on WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legal Tools -->
+            <div id="actionArea" class="hidden-section grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-[2.5rem] card-shadow border-2 border-brand-50 space-y-6">
+                    <h3 class="text-xl font-black text-brand-800 italic">Dispute Generator</h3>
+                    <div id="letterBody" class="bg-slate-50 p-6 rounded-3xl text-xs font-mono h-48 overflow-y-auto border border-brand-50"></div>
+                    
+                    <div class="space-y-2">
+                        <canvas id="signature-pad" class="w-full h-24 rounded-2xl"></canvas>
+                        <button onclick="signaturePad.clear()" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Clear Sign</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4">
+                        <input type="email" id="hospitalEmail" placeholder="Grievance Officer Email" class="p-4 rounded-2xl border border-slate-100 text-sm outline-none">
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="sendViaMailto()" class="bg-brand-600 text-white py-4 rounded-2xl font-black text-sm">Send Email</button>
+                            <button onclick="downloadLetterPDF()" class="bg-brand-50 text-brand-700 py-4 rounded-2xl font-black text-sm">Download PDF</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-brand-900 text-white p-8 rounded-[2.5rem] space-y-6">
+                    <h3 class="text-xl font-black text-brand-400">Next Steps Guide</h3>
+                    <div class="space-y-4 text-xs font-medium text-brand-100">
+                        <p class="flex gap-3"><i class="fas fa-circle-check text-brand-400"></i> Present this audit to the Ayushman Mitra or Billing Manager.</p>
+                        <p class="flex gap-3"><i class="fas fa-circle-check text-brand-400"></i> Demand revision as per CGHS/PM-JAY Benchmarks.</p>
+                        <p class="flex gap-3"><i class="fas fa-circle-check text-brand-400"></i> Mention you will escalate to the District Consumer Commission if ignored.</p>
+                    </div>
+                    <button onclick="findLocalHelp()" class="w-full bg-brand-500 py-4 rounded-2xl font-black text-sm mt-4">Identify Local Grievance Cell</button>
+                    <div id="locationResult" class="hidden p-4 bg-brand-800 rounded-2xl border border-brand-700 text-[11px] leading-relaxed"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <canvas id="pdf-canvas" class="hidden"></canvas>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cloudflare.com';
+        let signaturePad, currentAudit = null;
+
+        // AUTH
+        document.getElementById('authForm').onsubmit = (e) => {
+            e.preventDefault();
+            document.getElementById('loginPage').classList.add('opacity-0');
+            setTimeout(() => {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('mainDashboard').classList.remove('hidden-section');
+                signaturePad = new SignaturePad(document.getElementById('signature-pad'));
+                renderHistory();
+            }, 500);
+        };
+
+        // SCAN
+        async function processBill() {
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) return alert("Please select a file.");
+            
+            document.getElementById('statusContainer').classList.remove('hidden');
+            let source = file;
+
+            if (file.type === 'application/pdf') {
+                const pdf = await pdfjsLib.getDocument(await file.arrayBuffer()).promise;
+                const page = await pdf.getPage(1);
+                const canvas = document.getElementById('pdf-canvas');
+                const viewport = page.getViewport({ scale: 2 });
+                canvas.height = viewport.height; canvas.width = viewport.width;
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                source = canvas.toDataURL();
+            } else {
+                source = await new Promise(r => { const f = new FileReader(); f.onload = e => r(e.target.result); f.readAsDataURL(file); });
+            }
+
+            const worker = await Tesseract.createWorker(document.getElementById('appLang').value, 1, {
+                logger: m => { if(m.status === 'recognizing text') document.getElementById('progress-bar').style.width = (m.progress * 100) + '%'; }
+            });
+
+            const { data: { text } } = await worker.recognize(source);
+            await worker.terminate();
+            document.getElementById('statusContainer').classList.add('hidden');
+            auditText(text);
+        }
+
+        function auditText(text) {
+            const data = { id: Date.now(), date: new Date().toLocaleDateString(), total: 0, savings: 0, items: [] };
+            text.split('\n').forEach(line => {
+                const price = parseInt(line.match(/(\d{3,})/) || 0);
+                const isFlagged = line.toLowerCase().includes("misc") || line.toLowerCase().includes("cons") || price > 10000;
+                if(isFlagged) data.savings += price;
+                if(price > 0) {
+                    data.total += price;
+                    data.items.push({ name: line.trim().substring(0, 30), price, isFlagged });
+                }
+            });
+            currentAudit = data;
+            renderAudit();
+            saveToHistory(data);
+        }
+
+        function renderAudit() {
+            document.getElementById('outputArea').classList.remove('hidden-section');
+            document.getElementById('actionArea').classList.remove('hidden-section');
+            document.getElementById('auditResults').innerHTML = currentAudit.items.map(i => `
+                <div class="flex justify-between p-4 rounded-2xl ${i.isFlagged ? 'bg-rose-50 border border-rose-100' : 'bg-slate-50'}">
+                    <span class="text-xs font-bold ${i.isFlagged ? 'text-rose-700' : ''}">${i.name}</span>
+                    <span class="font-black">₹${i.price}</span>
+                </div>`).join('');
+            document.getElementById('reportSummary').innerHTML = `<p class='text-2xl font-black'>Total Bill: ₹${currentAudit.total.toLocaleString()}</p><p class='text-brand-400 font-bold'>Audit Savings: ₹${currentAudit.savings.toLocaleString()}</p><p class='mt-4 text-xs italic'>Reference: PM-JAY & CGHS Regulatory Bill Guidelines Section 15-A.</p>`;
+            document.getElementById('letterBody').innerText = `To,\nThe Medical Superintendent,\n\nSubject: Formal Dispute regarding Bill ID #${currentAudit.id}\n\nI contest charges totaling ₹${currentAudit.savings.toLocaleString()} for unbundled items. These charges violate the NHA guidelines for package pricing. Please issue a corrected bill.\n\nThank you.`;
+        }
+
+        function shareOnWhatsApp() {
+            const msg = `*Kavach Audit Result*\nBill Total: ₹${currentAudit.total}\nSavings Identified: ₹${currentAudit.savings}\n\nCheck your medical bills today with Kavach.`;
+            window.open(`https://wa.me{encodeURIComponent(msg)}`);
+        }
+
+        function downloadAuditPDF() {
+            const doc = new jsPDF();
+            doc.setFont("helvetica", "bold"); doc.text("KAVACH AUDIT SUMMARY", 20, 20);
+            doc.setFontSize(11); doc.text(`Date: ${currentAudit.date}`, 20, 30);
+            doc.text(`Total Bill: Rs. ${currentAudit.total}`, 20, 45);
+            doc.setTextColor(255, 0, 0); doc.text(`Estimated Overcharges: Rs. ${currentAudit.savings}`, 20, 55);
+            doc.save(`Audit_${currentAudit.id}.pdf`);
+        }
+
+        function downloadLetterPDF() {
+            const doc = new jsPDF();
+            doc.text(doc.splitTextToSize(document.getElementById('letterBody').innerText, 170), 20, 30);
+            if (!signaturePad.isEmpty()) doc.addImage(signaturePad.toDataURL(), 'PNG', 20, 140, 50, 20);
+            doc.save("Dispute_Letter.pdf");
+        }
+
+        function saveToHistory(data) {
+            let h = JSON.parse(localStorage.getItem('kavach_v1') || '[]');
+            h.unshift(data);
+            localStorage.setItem('kavach_v1', JSON.stringify(h.slice(0, 5)));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const h = JSON.parse(localStorage.getItem('kavach_v1') || '[]');
+            document.getElementById('historyList').innerHTML = h.map(i => `
+                <div onclick='loadHist(${i.id})' class="min-w-[140px] bg-white p-4 rounded-3xl card-shadow border border-slate-50 cursor-pointer hover:bg-brand-50 transition">
+                    <p class="text-[9px] font-black text-brand-400">${i.date}</p>
+                    <p class="font-black text-sm">₹${i.total}</p>
+                </div>`).join('');
+        }
+
+        function loadHist(id) {
+            const h = JSON.parse(localStorage.getItem('kavach_v1') || '[]');
+            currentAudit = h.find(i => i.id === id);
+            renderAudit();
+        }
+
+        function findLocalHelp() {
+            const res = document.getElementById('locationResult');
+            res.classList.remove('hidden');
+            res.innerText = "Closest Escalation: Karnataka State Consumer Commission, Shivaji Nagar (Approx 20km from Yelahanka). Contact: 080-22253300";
+        }
+
+        function sendViaMailto() {
+            const mail = document.getElementById('hospitalEmail').value;
+            const body = encodeURIComponent(document.getElementById('letterBody').innerText);
+            if(mail) window.location.href = `mailto:${mail}?subject=Bill Dispute&body=${body}`;
+        }
+    </script>
+</body>
+</html>
